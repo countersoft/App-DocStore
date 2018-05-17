@@ -3,7 +3,7 @@
 
     readOnly: false,
 
-    init: function (temp_upload, temp_dropzone, temp_delete, selectedFolder, editPermission)
+    init: function (temp_upload, temp_dropzone, temp_delete, selectedFolder, editPermission, temp_sizeexceeded)
     {        
         var height = gemini_sizing.availableHeight();   
         $('#geminiDocuments').height(height);
@@ -42,7 +42,7 @@
 
             if (!gemini_documentsApp.readOnly) {
                 $('#geminiDocuments .or-drop-here').show();
-                gemini_documentsApp.initFileUploader(temp_upload, temp_dropzone);
+                gemini_documentsApp.initFileUploader(temp_upload, temp_dropzone, temp_sizeexceeded, csVars.MaxFileSize);
             }
             else
             {
@@ -52,7 +52,8 @@
             $.extend(gemini_documentsApp.document_taxonomy, {
                 uploadButton: temp_upload,
                 dropZone: temp_dropzone,
-                deleteText: temp_delete
+                deleteText: temp_delete,
+                sizeExceeded: temp_sizeexceeded
             });
 
             gemini_documentsApp.updateAppNavCard();
@@ -63,7 +64,8 @@
         $.extend(gemini_documentsApp.document_taxonomy, {
             uploadButton: temp_upload,
             dropZone: temp_dropzone,
-            deleteText: temp_delete
+            deleteText: temp_delete,
+            sizeExceeded: temp_sizeexceeded
         });        
 
         $('#geminiDocuments').off("blur", "#DocumentFolderRenamer input").on('blur', '#DocumentFolderRenamer input', function (e) {
@@ -85,7 +87,7 @@
             return;
         }
 
-        gemini_documentsApp.initFileUploader(temp_upload, temp_dropzone);
+        gemini_documentsApp.initFileUploader(temp_upload, temp_dropzone, temp_sizeexceeded, csVars.MaxFileSize);
     },
 
     updateAppNavCard: function()
@@ -95,13 +97,13 @@
         gemini_appnav.pageCard.Options['1B9CB627-A2F2-4CC5-BE5B-D0FABB489F87'] = JSON.stringify({ projectId: gemini_documentsApp.projectId, folderKey: node ? node.data.Id : 0 });
     },
 
-    initFileUploader: function (temp_upload, temp_dropzone)
+    initFileUploader: function (temp_upload, temp_dropzone, temp_sizeexceeded, maxUploadBytes)
     {
         gemini_documentsApp.document_uploader = new qq.FileUploader({
             element: $("#page-documents #fileupload-hit")[0],
             action: gemini_ajax.getUrl("apps/documents/", "UploadFile/" + gemini_documentsApp.projectId, true),
             debug: false,
-
+            sizeLimit: maxUploadBytes,
             onComplete: function (_id, fileName, responseJSON) {
                 //Fix for error szenario where object is empty. I.e. if file is to big, responseJSON will be empty, but will come to "onComplete"
                 if (!jQuery.isEmptyObject(responseJSON)) {
@@ -110,6 +112,16 @@
                     var folderid = responseJSON.folderId;
                     gemini_documentsApp.document_FolderList(folderid);
                 }
+            },
+            showMessage: function(message) {
+                gemini_popup.toast(message, true);
+            },
+            messages: {
+                typeError: "{file} has invalid extension. Only {extensions} are allowed.",
+                sizeError: temp_sizeexceeded,
+                minSizeError: "{file} is too small, minimum file size is {minSizeLimit}.",
+                emptyError: "{file} is empty, please select files again without it.",
+                onLeave: "The files are being uploaded, if you leave now the upload will be cancelled."
             },
             taxonomy: {
                 uploadButton: temp_upload,

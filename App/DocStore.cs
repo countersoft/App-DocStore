@@ -22,6 +22,7 @@ using System.ComponentModel.DataAnnotations;
 using Countersoft.Gemini.Infrastructure.Managers;
 using Countersoft.Foundation.Utility.Helpers;
 using Countersoft.Gemini;
+using DocStore.App;
 
 namespace DocStore
 {
@@ -127,8 +128,14 @@ namespace DocStore
                 currentProjectId = viewableProjects.Count > 0 ? viewableProjects.First().Entity.Id : 0;
             }
 
-            var model = new DocumentsModel() { Projects = viewableProjects, FolderList = _projectDocumentManager.GetFolders(currentProjectId) };
-            
+
+            var model = new DocumentsModel
+            {
+                Projects = viewableProjects,
+                FolderList = _projectDocumentManager.GetFolders(currentProjectId),
+                MaxFileUpload = GeminiApp.Config.MaxFileUploadSizeBytes
+            };
+
             model.ProjectList = new SelectList(model.Projects, "Entity.Id", "Entity.Name", currentProjectId);
             
             model.Projects = viewableProjects;

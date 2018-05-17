@@ -1,5 +1,6 @@
-﻿@using Countersoft.Gemini
-@model Countersoft.Gemini.Models.DocumentsModel
+﻿@using System
+@using Countersoft.Gemini
+@model DocStore.App.DocumentsModel
 @using Countersoft.Foundation.Commons.Extensions
 @using Countersoft.Foundation.Commons.Enums
 
@@ -52,7 +53,11 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
-            gemini_documentsApp.init('@GetResource(ResourceKeys.Upload)', '@GetResource(ResourceKeys.DropZoneText)', '@GetResource(ResourceKeys.Delete)', '@Model.SelectedFolder', '@ViewBag.EditPermission' );
+            @{
+            var dropZoneText = String.Format("{0} - {1} {2}", GetResource(ResourceKeys.DropZoneText), Model.MaxFileUpload.ToFileSize(), GetResource(ResourceKeys.Maximum));
+                                
+            }
+            gemini_documentsApp.init('@GetResource(ResourceKeys.Upload)', '@dropZoneText', '@GetResource(ResourceKeys.Delete)', '@Model.SelectedFolder', '@ViewBag.EditPermission', '@GetResource(ResourceKeys.AttachmentSizeExceeded)' );
         });
     </script>
 </div>
